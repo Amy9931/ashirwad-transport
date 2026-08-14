@@ -37,6 +37,7 @@ try {
       email: String,
       amount: Number,
       paymentId: String,
+      txnId: String,
       date: String,
       status: String
     });
@@ -126,7 +127,7 @@ app.post('/api/verify-payment', (req, res) => {
 
 // Booking save karne ke liye API
 app.post('/api/bookings', async (req, res) => {
-  const { vehicle, seat, name, phone, pickup, drop, email, amount, bookingId, paymentId } = req.body;
+  const { vehicle, seat, name, phone, pickup, drop, email, amount, bookingId, paymentId, txnId } = req.body;
   if (!vehicle || !seat || !name || !phone || !pickup || !drop) {
     return res.status(400).json({ error: 'Required fields missing' });
   }
@@ -145,6 +146,7 @@ app.post('/api/bookings', async (req, res) => {
       email: email || '',
       amount: amount || 0,
       paymentId: paymentId || '',
+      txnId: txnId || '',
       date: new Date().toLocaleString('en-IN'),
       status: 'confirmed'
     };

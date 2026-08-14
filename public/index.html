@@ -145,7 +145,11 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
     <img id="paymentQR" style="width:190px;height:190px;border-radius:12px;border:1px solid #e5e7eb;padding:8px;background:#fff;margin:12px auto;display:block" alt="Scan to pay">
     <p style="font-size:15px;font-weight:800;margin:4px 0">UPI ID: <b>589005@ybl</b></p>
     <p class="paynote">PhonePe / GPay / Paytm kisi bhi app se pay kar sakte ho.</p>
-    <button class="btn" style="width:100%;margin-top:12px" onclick="confirmUPIPaid()">✅ Main Pay Kar Chuka — Confirm Booking</button>
+    <div style="text-align:left;margin-top:12px">
+      <label style="font-size:12px;font-weight:700;color:#475467;display:block;margin-bottom:6px">UPI Transaction ID / UTR number (payment ke baad milta hai)</label>
+      <input id="txnId" placeholder="e.g. 401792345678" style="width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:9px;font:inherit">
+    </div>
+    <button class="btn" id="payConfirmBtn" style="width:100%;margin-top:12px" onclick="confirmUPIPaid()" disabled>⏳ Wait 30 seconds...</button>
     <button class="btn dark" style="width:100%;margin-top:10px" onclick="closePayment()">Cancel</button>
     <div class="confirm" id="paymentConfirm"></div>
   </div>
@@ -213,14 +217,31 @@ async function confirmBooking(){
   pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount:0,bookingId:currentBookingId};
   const qrData='upi://pay?pa=589005@ybl&pn=Ashirwad%20Transport%20Agency';
   document.getElementById('paymentQR').src='https://api.qrserver.com/v1/create-qr-code/?size=190x190&data='+encodeURIComponent(qrData);
+  document.getElementById('txnId').value='';
   document.getElementById('paymentConfirm').classList.remove('show');
   document.getElementById('modal').classList.remove('open');
   document.getElementById('paymentModal').classList.add('open');
+  startConfirmCountdown();
+}
+
+function startConfirmCountdown(){
+  const btn=document.getElementById('payConfirmBtn');
+  btn.disabled=true;
+  let sec=30;
+  btn.textContent='⏳ Pay karo... ('+sec+'s)';
+  const timer=setInterval(()=>{
+    sec--;
+    if(sec<=0){clearInterval(timer);btn.disabled=false;btn.textContent='✅ Main Pay Kar Chuka — Confirm Booking';}
+    else btn.textContent='⏳ Pay karo... ('+sec+'s)';
+  },1000);
 }
 
 async function confirmUPIPaid(){
   if(!pendingBooking) return;
+  const txn=document.getElementById('txnId').value.trim();
+  if(!txn){alert('Payment ke baad milne wala UPI Transaction ID/UTR number daalo.');return}
   if(!confirm('Kya aapne payment kar diya hai?')) return;
+  pendingBooking.txnId=txn;
   await saveBooking();
 }
 
