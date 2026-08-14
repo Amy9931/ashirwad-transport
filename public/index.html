@@ -86,9 +86,9 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
  <div class="sectiontitle"><h2>Online Seat Booking</h2><p>Select your vehicle, choose a seat and enter passenger details.</p></div>
  <div class="bookingbox">
   <div class="tripbar"><span class="trip active">1. Choose Vehicle</span><span class="trip">2. Select Seat</span><span class="trip">3. Passenger</span><span class="trip">4. Confirm</span></div>
-  <div class="vehicle"><div><h3>🚐 Force Urbania</h3><p>17 Seats • AC • Comfortable • Outstation</p></div><div><div class="price">₹1,500+</div><button class="btn" onclick="openBooking('Force Urbania',17,1500)">Select</button></div></div>
-  <div class="vehicle"><div><h3>🚗 Maruti Ertiga</h3><p>6+1 Seats • AC • Family / Local / Outstation</p></div><div><div class="price">₹2,500+</div><button class="btn" onclick="openBooking('Maruti Ertiga',7,2500)">Select</button></div></div>
-  <div class="vehicle"><div><h3>🚌 Traveller / Bus</h3><p>Group Booking • Multiple Seats • Tour Packages</p></div><div><div class="price">Contact Us</div><button class="btn dark" onclick="openBooking('Traveller / Bus',20,5000)">Select</button></div></div>
+  <div class="vehicle"><div><h3>🚐 Force Urbania</h3><p>17 Seats • AC • Comfortable • Outstation</p></div><div><div class="price">Contact Us</div><button class="btn" onclick="openBooking('Force Urbania',17,0)">Select</button></div></div>
+  <div class="vehicle"><div><h3>🚗 Maruti Ertiga</h3><p>6+1 Seats • AC • Family / Local / Outstation</p></div><div><div class="price">Contact Us</div><button class="btn" onclick="openBooking('Maruti Ertiga',7,0)">Select</button></div></div>
+  <div class="vehicle"><div><h3>🚌 Traveller / Bus</h3><p>Group Booking • Multiple Seats • Tour Packages</p></div><div><div class="price">Contact Us</div><button class="btn dark" onclick="openBooking('Traveller / Bus',20,0)">Select</button></div></div>
  </div>
 </section>
 
@@ -140,14 +140,12 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
 <div class="modal" id="paymentModal">
   <div class="paymentbox">
     <div style="font-size:42px">💳</div>
-    <h2 style="margin:8px 0">Complete Your Payment</h2>
-    <p style="margin:0;color:#667085">Booking amount</p>
-    <div class="paymentamount" id="payAmount">₹0</div>
-    <div style="margin:16px 0;padding:14px;border-radius:10px;background:#ecfdf3;border:1px solid #abefc6">
-      <div style="font-weight:800;margin-bottom:4px">💳 Secure Online Payment</div>
-      <p class="paynote" style="margin:0">UPI (GPay/PhonePe/Paytm), Card, NetBanking — sabse pay karo.</p>
-      <button class="btn" style="width:100%;margin-top:12px" onclick="startRazorpay()">🔒 Pay Now</button>
-    </div>
+    <h2 style="margin:8px 0">Payment</h2>
+    <p style="margin:0;color:#667085">Amount driver se settle karein, kisi bhi UPI app se pay karein</p>
+    <img id="paymentQR" style="width:190px;height:190px;border-radius:12px;border:1px solid #e5e7eb;padding:8px;background:#fff;margin:12px auto;display:block" alt="Scan to pay">
+    <p style="font-size:15px;font-weight:800;margin:4px 0">UPI ID: <b>589005@ybl</b></p>
+    <p class="paynote">PhonePe / GPay / Paytm kisi bhi app se pay kar sakte ho.</p>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="confirmUPIPaid()">✅ Main Pay Kar Chuka — Confirm Booking</button>
     <button class="btn dark" style="width:100%;margin-top:10px" onclick="closePayment()">Cancel</button>
     <div class="confirm" id="paymentConfirm"></div>
   </div>
@@ -172,8 +170,6 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
  </div>
 </div>
 
-<script id="rzp-key" data-key="rzp_test_TPZqfkxszYKq3n"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 let currentVehicle='', seatsCount=0, selectedSeat=null, baseFare=0;
 function searchTrip(){
@@ -209,71 +205,35 @@ function closeBooking(){document.getElementById('modal').classList.remove('open'
 let currentBookingId='';
 let pendingBooking=null;
 
-function confirmBooking(){
+async function confirmBooking(){
   const name=document.getElementById('name').value.trim(),phone=document.getElementById('phone').value.trim(),pickup=document.getElementById('pickup').value.trim(),drop=document.getElementById('drop').value.trim();
   if(!selectedSeat||!name||!phone||!pickup||!drop){alert('Please select a seat and fill Name, Mobile, Pickup and Drop.');return}
 
   currentBookingId='AT'+Date.now().toString().slice(-8);
-  const amount=baseFare;
-  pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount,bookingId:currentBookingId};
-  document.getElementById('payAmount').textContent='₹'+amount;
+  pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount:0,bookingId:currentBookingId};
+  const qrData='upi://pay?pa=589005@ybl&pn=Ashirwad%20Transport%20Agency';
+  document.getElementById('paymentQR').src='https://api.qrserver.com/v1/create-qr-code/?size=190x190&data='+encodeURIComponent(qrData);
   document.getElementById('paymentConfirm').classList.remove('show');
   document.getElementById('modal').classList.remove('open');
   document.getElementById('paymentModal').classList.add('open');
 }
 
-async function startRazorpay(){
+async function confirmUPIPaid(){
   if(!pendingBooking) return;
-  const btn=document.querySelector('#paymentModal .btn');
-  btn.disabled=true;btn.textContent='Loading payment...';
-  try{
-    const r=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:pendingBooking.amount})});
-    const d=await r.json();
-    if(!r.ok){alert('Error: '+(d.error||'Order create failed'));btn.disabled=false;btn.textContent='🔒 Pay Now';return}
-    openRazorpay(d.orderId);
-  }catch(e){
-    alert('Payment start nahi ho paya. Dobara try karo.');
-    btn.disabled=false;btn.textContent='🔒 Pay Now';
-  }
-}
-
-function openRazorpay(orderId){
-  const amount=pendingBooking.amount;
-  const options={
-    key: window.RZP_KEY_ID || document.getElementById('rzp-key').dataset.key,
-    amount: amount*100,
-    currency: 'INR',
-    name: 'Ashirwad Transport Agency',
-    description: pendingBooking.vehicle+' · Seat '+pendingBooking.seat,
-    order_id: orderId,
-    prefill:{name:pendingBooking.name,contact:pendingBooking.phone,email:pendingBooking.email||''},
-    handler: async function(response){
-      const v=await fetch('/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:response.razorpay_order_id,razorpay_payment_id:response.razorpay_payment_id,razorpay_signature:response.razorpay_signature})});
-      const vd=await v.json();
-      if(!vd.success){alert('Payment verification failed');return}
-      pendingBooking.paymentId=response.razorpay_payment_id;
-      await saveBooking();
-    },
-    modal:{ondismiss:function(){const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';}}
-  };
-  if(typeof Razorpay==='undefined'){alert('Razorpay checkout load nahi hua. Internet check karo.');const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';return}
-  const rzp1=new Razorpay(options);
-  rzp1.on('payment.failed',function(resp){alert('Payment failed: '+(resp.error&&resp.error.description||'Try again'));const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';});
-  rzp1.open();
+  if(!confirm('Kya aapne payment kar diya hai?')) return;
+  await saveBooking();
 }
 
 async function saveBooking(){
-  const btn=document.querySelector('#paymentModal .btn');
   try{
     const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pendingBooking)});
     const d=await r.json();
-    if(!r.ok){alert('Error: '+(d.error||'Booking failed'));btn.disabled=false;btn.textContent='🔒 Pay Now';return}
-    document.getElementById('paymentConfirm').innerHTML='Payment Successful! 🎉 Booking Confirmed!<br>Booking ID: <b>'+d.id+'</b> · Seat <b>'+d.seat+'</b> · '+d.vehicle;
+    if(!r.ok){alert('Error: '+(d.error||'Booking failed'));return}
+    document.getElementById('paymentConfirm').innerHTML='Booking Confirmed! 🎉<br>Booking ID: <b>'+d.id+'</b> · Seat <b>'+d.seat+'</b> · '+d.vehicle;
     document.getElementById('paymentConfirm').classList.add('show');
-    document.querySelector('#paymentModal .btn').style.display='none';
+    document.getElementById('booking').scrollIntoView({behavior:'smooth'});
   }catch(e){
-    alert('Payment ho gaya, lekin booking save nahi hui. Support se contact karo.');
-    btn.disabled=false;btn.textContent='🔒 Pay Now';
+    alert('Server se connect nahi ho paya. Dobara try karo.');
   }
 }
 
