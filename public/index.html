@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashirwad Transport Agency | Taxi & Transport Booking</title>
+<meta name="description" content="Book safe, comfortable and on-time local, outstation and airport transport.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#081a35;--blue:#123b73;--gold:#f7bd19;--red:#d92727;--light:#f5f7fb;--green:#16a34a;--muted:#667085}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Arial,sans-serif;color:#101828;background:#fff}
+a{text-decoration:none;color:inherit}.top{background:var(--navy);color:#fff;padding:9px 5%;font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:14px 5%;box-shadow:0 4px 16px #0000000b}
+.logo{font-weight:800;font-size:22px;color:var(--navy)}.logo span{color:var(--red)}
+.navlinks{display:flex;gap:22px;font-weight:600;font-size:14px}.navlinks a:hover{color:var(--red)}
+.btn{display:inline-block;border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer;background:var(--red);color:#fff}.btn.gold{background:var(--gold);color:#111827}.btn.dark{background:var(--navy)}
+.hero{min-height:560px;padding:70px 5%;display:grid;grid-template-columns:1.05fr .95fr;gap:35px;align-items:center;background:linear-gradient(115deg,#f8fbff 0%,#eef5ff 55%,#fff8dc 100%)}
+.hero h1{font-size:clamp(40px,6vw,68px);line-height:1.02;margin:0 0 18px;color:var(--navy)}.hero h1 span{color:var(--red)}
+.hero p{font-size:18px;line-height:1.7;color:#475467;max-width:650px}.badges{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}.badge{background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:700}
+.heroimg{border-radius:26px;overflow:hidden;box-shadow:0 25px 60px #081a3522;background:#ddd}.heroimg img{width:100%;height:520px;object-fit:cover;object-position:center}
+.search{margin:-42px auto 45px;position:relative;width:90%;max-width:1120px;background:#fff;padding:22px;border-radius:18px;box-shadow:0 15px 50px #081a3520;border:1px solid #eef0f3}
+.searchgrid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px}.field label{display:block;font-size:12px;font-weight:700;color:#475467;margin-bottom:6px}.field input,.field select{width:100%;padding:13px;border:1px solid #d0d5dd;border-radius:9px;font:inherit}
+section{padding:65px 5%}.sectiontitle{text-align:center;max-width:750px;margin:0 auto 35px}.sectiontitle h2{font-size:34px;color:var(--navy);margin:0 0 10px}.sectiontitle p{color:var(--muted);line-height:1.6}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.card{background:#fff;border:1px solid #eaecf0;border-radius:16px;padding:24px;box-shadow:0 8px 25px #1018280a}.icon{font-size:32px}.card h3{margin:13px 0 8px}.card p{color:var(--muted);line-height:1.55;font-size:14px}
+.booking{background:var(--light)}.bookingbox{max-width:1000px;margin:auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 10px 35px #10182810}.tripbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:25px}.trip{padding:10px 14px;border-radius:9px;background:#eef2f7;font-weight:700}.trip.active{background:var(--navy);color:#fff}
+.vehicle{border:1px solid #e4e7ec;border-radius:14px;padding:18px;margin:14px 0;display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center}.vehicle h3{margin:0 0 5px}.vehicle p{margin:0;color:var(--muted);font-size:14px}.price{font-size:20px;font-weight:800;color:var(--navy)}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:50;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modalbox{background:#fff;border-radius:18px;max-width:700px;width:100%;max-height:92vh;overflow:auto;padding:25px}.modalhead{display:flex;justify-content:space-between;align-items:center}.close{font-size:26px;border:0;background:none;cursor:pointer}
+.seats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:360px;margin:20px auto}.seat{height:45px;border-radius:9px;border:1px solid #cfd5dd;background:#fff;font-weight:800;cursor:pointer}.seat.booked{background:#fee2e2;color:#b42318;cursor:not-allowed}.seat.selected{background:var(--green);color:#fff;border-color:var(--green)}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formgrid input{width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:9px;font:inherit}.full{grid-column:1/-1}
+.confirm{background:#ecfdf3;border:1px solid #abefc6;border-radius:12px;padding:15px;display:none;margin-top:15px}.confirm.show{display:block}
+.contact{background:var(--navy);color:#fff}.contactgrid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}.contact p{color:#d0d5dd;line-height:1.7}.phones{display:flex;gap:12px;flex-wrap:wrap}.phone{background:#fff;color:var(--navy);padding:14px 18px;border-radius:10px;font-weight:800}
+footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;font-size:13px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:45px}.heroimg img{height:390px}.cards{grid-template-columns:1fr 1fr}.searchgrid{grid-template-columns:1fr 1fr}.searchgrid .btn{width:100%}}
+@media(max-width:600px){.navlinks{display:none}.hero h1{font-size:43px}.cards,.contactgrid,.formgrid{grid-template-columns:1fr}.searchgrid{grid-template-columns:1fr}.heroimg img{height:330px}section{padding:48px 5%}}
+
+.paymentbox{background:#fff;border-radius:18px;max-width:520px;width:100%;padding:28px;text-align:center;box-shadow:0 20px 60px #0003}
+.paymentamount{font-size:38px;font-weight:900;color:var(--navy);margin:10px 0}
+.qrpay{width:230px;height:230px;border:1px solid #e5e7eb;border-radius:14px;padding:8px;background:#fff;margin:12px auto}
+.paynote{font-size:13px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="top"><span>🚕 Safe • Comfortable • On-Time Travel</span><span>📞 9852911976 &nbsp; | &nbsp; 9102250079</span></div>
+<nav>
+  <div class="logo">ASHIRWAD <span>TRANSPORT AGENCY</span></div>
+  <div class="navlinks"><a href="#home">Home</a><a href="#services">Services</a><a href="#booking">Seat Booking</a><a href="#about">About</a><a href="#payment">Payment</a><a href="#contact">Contact</a></div>
+  <a class="btn" href="#booking">Book Now</a>
+</nav>
+
+<main id="home">
+<section class="hero">
+  <div>
+    <div class="badge">⭐ Trusted Travel & Transport Service</div>
+    <h1>Call <span>घुमाए</span><br>Taxi <span>घर बुलाए</span></h1>
+    <p>Local rides, outstation trips, airport transfers and tour packages with well-maintained vehicles and experienced drivers.</p>
+    <div class="badges"><span class="badge">✓ Safe & Reliable</span><span class="badge">✓ Comfortable Ride</span><span class="badge">✓ Experienced Drivers</span><span class="badge">✓ 24/7 Support</span></div>
+    <a class="btn" href="#booking">Book Your Seat</a>
+    <a class="btn gold" href="tel:+919852911976">Call Now</a>
+  </div>
+  <div class="heroimg"><img src="assets/travel-agency-poster.png" alt="Travel Agency transport service"></div>
+</section>
+
+<div class="search">
+  <div class="searchgrid">
+    <div class="field"><label>FROM</label><input id="from" placeholder="e.g. Gaya"></div>
+    <div class="field"><label>TO</label><input id="to" placeholder="e.g. Patna"></div>
+    <div class="field"><label>JOURNEY DATE</label><input id="date" type="date"></div>
+    <button class="btn" onclick="searchTrip()">Search</button>
+  </div>
+  <div id="searchMsg" style="margin-top:12px;font-size:14px;font-weight:700;color:#475467"></div>
+</div>
+
+<section id="services">
+ <div class="sectiontitle"><h2>Our Transport Services</h2><p>Everything you need for comfortable and dependable travel.</p></div>
+ <div class="cards">
+  <div class="card"><div class="icon">🚗</div><h3>Local Taxi</h3><p>Reliable city rides for daily travel, meetings and personal trips.</p></div>
+  <div class="card"><div class="icon">🛣️</div><h3>Outstation</h3><p>One-way and round-trip travel with comfortable vehicles.</p></div>
+  <div class="card"><div class="icon">✈️</div><h3>Airport Transfer</h3><p>Pickup and drop service with scheduled, on-time travel.</p></div>
+  <div class="card"><div class="icon">🚌</div><h3>Tour Packages</h3><p>Family tours, group travel and customized sightseeing packages.</p></div>
+ </div>
+</section>
+
+<section class="booking" id="booking">
+ <div class="sectiontitle"><h2>Online Seat Booking</h2><p>Select your vehicle, choose a seat and enter passenger details.</p></div>
+ <div class="bookingbox">
+  <div class="tripbar"><span class="trip active">1. Choose Vehicle</span><span class="trip">2. Select Seat</span><span class="trip">3. Passenger</span><span class="trip">4. Confirm</span></div>
+  <div class="vehicle"><div><h3>🚐 Force Urbania</h3><p>17 Seats • AC • Comfortable • Outstation</p></div><div><div class="price">₹1,500+</div><button class="btn" onclick="openBooking('Force Urbania',17,1500)">Select</button></div></div>
+  <div class="vehicle"><div><h3>🚗 Maruti Ertiga</h3><p>6+1 Seats • AC • Family / Local / Outstation</p></div><div><div class="price">₹2,500+</div><button class="btn" onclick="openBooking('Maruti Ertiga',7,2500)">Select</button></div></div>
+  <div class="vehicle"><div><h3>🚌 Traveller / Bus</h3><p>Group Booking • Multiple Seats • Tour Packages</p></div><div><div class="price">Contact Us</div><button class="btn dark" onclick="openBooking('Traveller / Bus',20,5000)">Select</button></div></div>
+ </div>
+</section>
+
+<section id="about">
+ <div class="sectiontitle"><h2>Why Choose Us?</h2><p>Professional service designed around passenger comfort and trust.</p></div>
+ <div class="cards">
+  <div class="card"><div class="icon">🛡️</div><h3>Safety First</h3><p>Experienced drivers and well-maintained vehicles.</p></div>
+  <div class="card"><div class="icon">⏱️</div><h3>On-Time</h3><p>Planned pickups and reliable journey schedules.</p></div>
+  <div class="card"><div class="icon">💳</div><h3>Easy Booking</h3><p>Simple online booking flow with clear pricing.</p></div>
+  <div class="card"><div class="icon">📞</div><h3>Support</h3><p>Call or WhatsApp us for booking assistance.</p></div>
+ </div>
+</section>
+
+
+<section id="payment" style="background:#f5f7fb">
+  <div class="sectiontitle">
+    <h2>Payment Details</h2>
+    <p>Make your booking payment using the details below.</p>
+  </div>
+  <div class="bookingbox" style="max-width:760px">
+    <div class="formgrid">
+      <div class="card">
+        <h3>💳 UPI Payment</h3>
+        <p><b>UPI ID:</b> 589005@ybl</p><div style="text-align:center;margin-top:18px"><div style="font-weight:800;margin-bottom:10px">📱 Scan & Pay</div><img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=upi%3A%2F%2Fpay%3Fpa%3D589005%40ybl%26pn%3DAshirwad%2520Transport%2520Agency" alt="Scan to pay Ashirwad Transport Agency" style="width:220px;height:220px;border-radius:12px;border:1px solid #e5e7eb;padding:8px;background:#fff"><p style="font-size:13px;color:#667085;margin-top:10px">UPI ID: <b>589005@ybl</b></p></div>
+        <p style="color:#667085">Replace the UPI ID with your actual payment ID before publishing.</p>
+      </div>
+      <div class="card">
+        <h3>🏦 Bank Payment</h3>
+        <p><b>Account Name:</b> Ashirwad Transport Agency</p>
+        <p><b>Account No.:</b> Add Account Number</p>
+        <p><b>IFSC:</b> Add IFSC Code</p>
+        <p><b>Bank:</b> Add Bank Name</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+ <div class="contactgrid">
+  <div><h2>Ready for your next journey?</h2><p>Book a local ride, outstation trip, airport transfer or tour package today.</p></div>
+  <div class="phones"><a class="phone" href="tel:+919852911976">📞 9852911976</a><a class="phone" href="tel:+919102250079">📞 9102250079</a><a class="phone" href="https://wa.me/919852911976" target="_blank">💬 WhatsApp</a></div>
+ </div>
+</section>
+</main>
+
+<footer><span>© 2026 Ashirwad Transport Agency. All Rights Reserved.</span><span>Local • Outstation • Airport • Tours • Corporate Travel</span></footer>
+
+
+<div class="modal" id="paymentModal">
+  <div class="paymentbox">
+    <div style="font-size:42px">💳</div>
+    <h2 style="margin:8px 0">Complete Your Payment</h2>
+    <p style="margin:0;color:#667085">Booking amount</p>
+    <div class="paymentamount">₹270</div>
+    <img id="paymentQR" class="qrpay" alt="Scan to pay ₹270">
+    <p><b>UPI ID: 589005@ybl</b></p><div style="margin:12px 0;padding:12px;border-radius:10px;background:#ecfdf3;border:1px solid #abefc6;font-weight:800">💰 Payment Option: ₹270</div>
+    <a id="upiPayButton" class="btn gold" style="display:block;width:100%;margin-top:10px" href="#">
+      📲 Pay ₹270 with UPI App
+    </a>
+    <p class="paynote">On supported phones, this opens your installed UPI app. Otherwise, scan the QR code above.</p>
+    <p class="paynote">Scan the QR code with any UPI app and pay exactly ₹270.</p>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="confirmPaid()">✅ I Have Paid — Confirm Booking</button>
+    <button class="btn dark" style="width:100%;margin-top:10px" onclick="closePayment()">Cancel</button>
+    <div class="confirm" id="paymentConfirm"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+ <div class="modalbox">
+  <div class="modalhead"><div><h2 id="vehicleTitle">Seat Booking</h2><p id="vehicleSub" style="color:#667085"></p></div><button class="close" onclick="closeBooking()">×</button></div>
+  <h3>Choose your seat</h3>
+  <div class="seats" id="seats"></div>
+  <div style="font-size:13px;color:#667085;text-align:center">🟩 Selected &nbsp; 🟥 Already Booked &nbsp; ⬜ Available</div>
+  <hr style="border:0;border-top:1px solid #eee;margin:22px 0">
+  <div class="formgrid">
+   <input id="name" placeholder="Passenger Name">
+   <input id="phone" placeholder="Mobile Number">
+   <input id="pickup" placeholder="Pickup Point">
+   <input id="drop" placeholder="Drop Point">
+   <input class="full" id="email" placeholder="Email (optional)">
+  </div>
+  <button class="btn" style="margin-top:15px;width:100%" onclick="confirmBooking()">Confirm Booking</button>
+  <div class="confirm" id="confirm"></div>
+ </div>
+</div>
+
+<script>
+let currentVehicle='', seatsCount=0, selectedSeat=null, baseFare=0;
+function searchTrip(){
+ const f=document.getElementById('from').value.trim(), t=document.getElementById('to').value.trim(), d=document.getElementById('date').value;
+ document.getElementById('searchMsg').textContent = f&&t&&d ? `Showing available vehicles for ${f} → ${t} on ${d}. Select a vehicle below.` : 'Please enter From, To and Journey Date.';
+ if(f&&t&&d) document.getElementById('booking').scrollIntoView({behavior:'smooth'});
+}
+async function openBooking(vehicle,count,fare){
+ currentVehicle=vehicle;seatsCount=count;baseFare=fare;selectedSeat=null;
+ document.getElementById('vehicleTitle').textContent=vehicle+' — Seat Booking';
+ document.getElementById('vehicleSub').textContent=count+' seats • Select one available seat';
+ const wrap=document.getElementById('seats');wrap.innerHTML='Loading seats...';
+ let booked=new Set();
+ try{
+   const r=await fetch('/api/seats/'+encodeURIComponent(vehicle));
+   const d=await r.json();
+   booked=new Set(d.bookedSeats||[]);
+ }catch(e){}
+ wrap.innerHTML='';
+ for(let i=1;i<=count;i++){
+   const b=document.createElement('button');b.className='seat'+(booked.has(i)?' booked':'');b.textContent=i;
+   if(!booked.has(i)) b.onclick=()=>selectSeat(i,b);
+   wrap.appendChild(b);
+ }
+ document.getElementById('confirm').classList.remove('show');
+ document.getElementById('modal').classList.add('open');
+}
+function selectSeat(n,el){
+ document.querySelectorAll('.seat.selected').forEach(x=>x.classList.remove('selected'));
+ el.classList.add('selected');selectedSeat=n;
+}
+function closeBooking(){document.getElementById('modal').classList.remove('open')}
+let currentBookingId='';
+let pendingBooking=null;
+
+function confirmBooking(){
+  const name=document.getElementById('name').value.trim(),phone=document.getElementById('phone').value.trim(),pickup=document.getElementById('pickup').value.trim(),drop=document.getElementById('drop').value.trim();
+  if(!selectedSeat||!name||!phone||!pickup||!drop){alert('Please select a seat and fill Name, Mobile, Pickup and Drop.');return}
+
+  currentBookingId='AT'+Date.now().toString().slice(-8);
+  const amount=baseFare;
+  pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount,bookingId:currentBookingId};
+  const qrData='upi://pay?pa=589005@ybl&pn=Ashirwad%20Transport%20Agency&am='+amount+'&cu=INR';
+  document.getElementById('paymentQR').src='https://api.qrserver.com/v1/create-qr-code/?size=230x230&data='+encodeURIComponent(qrData);
+  document.getElementById('upiPayButton').href=qrData;
+  document.querySelector('.paymentamount').textContent='₹'+amount;
+  document.querySelector('#paymentModal .confirm').innerHTML='';
+
+  document.getElementById('paymentConfirm').classList.remove('show');
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('paymentModal').classList.add('open');
+}
+
+async function confirmPaid(){
+  if(!pendingBooking) return;
+  const btn=document.querySelector('#paymentModal .btn');
+  btn.disabled=true;btn.textContent='Saving...';
+  try{
+    const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pendingBooking)});
+    const d=await r.json();
+    if(!r.ok){alert('Error: '+(d.error||'Booking failed'));btn.disabled=false;btn.textContent='✅ I Have Paid — Confirm Booking';return}
+    document.getElementById('paymentConfirm').innerHTML='Booking Confirmed! Booking ID: <b>'+d.id+'</b> · Seat <b>'+d.seat+'</b> · '+d.vehicle;
+    document.getElementById('paymentConfirm').classList.add('show');
+    document.getElementById('upiPayButton').style.display='none';
+    document.querySelector('#paymentModal .confirm').innerHTML='';
+  }catch(e){
+    alert('Server se connect nahi ho paya. Ensure backend chalu hai (node server.js).');
+    btn.disabled=false;btn.textContent='✅ I Have Paid — Confirm Booking';
+  }
+}
+
+function closePayment(){
+  document.getElementById('paymentModal').classList.remove('open');
+}
+
+document.getElementById('date').min=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

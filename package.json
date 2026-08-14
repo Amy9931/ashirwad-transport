@@ -1,0 +1,14 @@
+{
+  "name": "ashirwad-transport-backend",
+  "version": "1.0.0",
+  "description": "Backend for Ashirwad Transport Agency website - seat booking system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.5.1"
+  }
+}
