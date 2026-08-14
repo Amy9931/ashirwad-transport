@@ -144,17 +144,9 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
     <p style="margin:0;color:#667085">Booking amount</p>
     <div class="paymentamount" id="payAmount">₹0</div>
     <div style="margin:16px 0;padding:14px;border-radius:10px;background:#ecfdf3;border:1px solid #abefc6">
-      <div style="font-weight:800;margin-bottom:4px">💳 Secure Online Payment (Razorpay)</div>
-      <p class="paynote" style="margin:0">Card, NetBanking, UPI — sabse pay karo.</p>
-      <button class="btn" style="width:100%;margin-top:12px" onclick="startRazorpay()">🔒 Pay Now (Online)</button>
-    </div>
-    <div style="margin:18px 0;padding:14px;border-radius:10px;background:#fff;border:1px dashed #d0d5dd">
-      <div style="font-weight:800;margin-bottom:4px">📱 PhonePe / GPay / Paytm se pay karo</div>
-      <p class="paynote" style="margin:0">QR scan karke kisi bhi UPI app se pay karo:</p>
-      <img id="paymentQR" style="width:190px;height:190px;border-radius:12px;border:1px solid #e5e7eb;padding:8px;background:#fff;margin:10px auto;display:block" alt="Scan to pay">
-      <p style="font-size:14px;font-weight:800;margin:4px 0">UPI ID: <b>589005@ybl</b></p>
-      <p class="paynote" style="margin:0 0 10px">Pay karne ke baad neeche button dabao.</p>
-      <button class="btn gold" style="width:100%" onclick="confirmUPIPaid()">✅ Main Pay Kar Chuka — Booking Confirm</button>
+      <div style="font-weight:800;margin-bottom:4px">💳 Secure Online Payment</div>
+      <p class="paynote" style="margin:0">UPI (GPay/PhonePe/Paytm), Card, NetBanking — sabse pay karo.</p>
+      <button class="btn" style="width:100%;margin-top:12px" onclick="startRazorpay()">🔒 Pay Now</button>
     </div>
     <button class="btn dark" style="width:100%;margin-top:10px" onclick="closePayment()">Cancel</button>
     <div class="confirm" id="paymentConfirm"></div>
@@ -225,17 +217,9 @@ function confirmBooking(){
   const amount=baseFare;
   pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount,bookingId:currentBookingId};
   document.getElementById('payAmount').textContent='₹'+amount;
-  const qrData='upi://pay?pa=589005@ybl&pn=Ashirwad%20Transport%20Agency&am='+amount+'&cu=INR';
-  document.getElementById('paymentQR').src='https://api.qrserver.com/v1/create-qr-code/?size=190x190&data='+encodeURIComponent(qrData);
   document.getElementById('paymentConfirm').classList.remove('show');
   document.getElementById('modal').classList.remove('open');
   document.getElementById('paymentModal').classList.add('open');
-}
-
-async function confirmUPIPaid(){
-  if(!pendingBooking) return;
-  if(!confirm('Kya aapne ₹'+pendingBooking.amount+' ka payment kar diya hai?')) return;
-  await saveBooking();
 }
 
 async function startRazorpay(){
