@@ -47,6 +47,13 @@ try {
 }
 
 app.use(express.json());
+
+// Cache off - taaki users ko hamesha naya version dikhe
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 async function getAllBookings() {
