@@ -3,10 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'bookings.json');
+
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 let rzp = null;
 if (process.env.RZP_KEY_ID && process.env.RZP_KEY_SECRET) {
@@ -163,6 +166,42 @@ app.get('/api/bookings', async (req, res) => {
     res.json(await getAllBookings());
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Chatbot endpoint
+const AI_CONTEXT = `Aap "Ashirwad Transport Agency" ke AI assistant ho. Hindi mein jawab do (thoda English bhi chalega).
+Business details:
+- Services: Local Taxi, Outstation trips, Airport Transfer, Tour Packages
+- Vehicles: Force Urbania (17 seats, AC), Maruti Ertiga (7 seats, AC), Traveller/Bus (group booking)
+- Booking: Website par "Seat Booking" section mein vehicle select karke seat book hoti hai
+- Payment: Booking advance ₹270 online (Razorpay) se hota hai
+- Contact: Phone 9852911976 aur 9102250079, WhatsApp par bhi booking hoti hai
+- Fare: Route ke hisaab se alag hota hai, customer ko phone par call karke pata chalta hai
+- Kaam ke ghante: 24/7
+Customer ko booking, fare, vehicle, route, contact ke baare mein helpful tarike se batana. Jab customer contact number maange to 9852911976 aur 9102250079 batao. Jawab chhota (max 3-4 lines) aur friendly rakho.`;
+
+app.post('/api/chat', async (req, res) => {
+  const { message, history } = req.body;
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: 'Message required' });
+  }
+  if (!genAI) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY configured nahi hai' });
+  }
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const chat = model.startChat({
+      history: (history || []).slice(-6).map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }))
+    });
+    const result = await chat.sendMessage(AI_CONTEXT + '\n\nCustomer: ' + message);
+    const text = result.response.text();
+    res.json({ reply: text });
+  } catch (err) {
+    res.status(500).json({ error: 'AI error: ' + err.message });
   }
 });
 

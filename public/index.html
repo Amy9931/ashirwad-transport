@@ -39,6 +39,21 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
 .paymentamount{font-size:38px;font-weight:900;color:var(--navy);margin:10px 0}
 .qrpay{width:230px;height:230px;border:1px solid #e5e7eb;border-radius:14px;padding:8px;background:#fff;margin:12px auto}
 .paynote{font-size:13px;color:var(--muted);line-height:1.5}
+
+.chatbtn{position:fixed;bottom:20px;right:20px;z-index:60;width:60px;height:60px;border-radius:50%;border:0;background:var(--red);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 8px 25px #d9272788}
+.chatbox{position:fixed;bottom:92px;right:20px;z-index:60;width:340px;max-width:calc(100vw - 40px);height:460px;max-height:calc(100vh - 130px);background:#fff;border-radius:16px;box-shadow:0 20px 60px #0003;display:none;flex-direction:column;overflow:hidden}
+.chatbox.open{display:flex}
+.chathead{background:var(--navy);color:#fff;padding:14px 16px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.chathead span{font-size:13px;font-weight:500;color:#cbd5e1}
+.chatclose{background:none;border:0;color:#fff;font-size:22px;cursor:pointer}
+.chatmsgs{flex:1;overflow-y:auto;padding:14px;background:#f5f7fb;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:9px 12px;border-radius:12px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.msg.bot{background:#fff;border:1px solid #e5e7eb;align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:var(--blue);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chatinput{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:#fff}
+.chatinput input{flex:1;padding:11px 13px;border:1px solid #d0d5dd;border-radius:10px;font:inherit}
+.chatinput button{background:var(--red);border:0;color:#fff;border-radius:10px;padding:0 16px;font-weight:800;cursor:pointer}
+.typing{font-size:13px;color:var(--muted);padding:4px 2px}
 </style>
 </head>
 <body>
@@ -135,6 +150,16 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
 </main>
 
 <footer><span>© 2026 Ashirwad Transport Agency. All Rights Reserved.</span><span>Local • Outstation • Airport • Tours • Corporate Travel</span></footer>
+
+<button class="chatbtn" id="chatBtn" onclick="toggleChat()">💬</button>
+<div class="chatbox" id="chatBox">
+  <div class="chathead"><div>🤖 AI Assistant <span>Ashirwad Transport</span></div><button class="chatclose" onclick="toggleChat()">×</button></div>
+  <div class="chatmsgs" id="chatMsgs"></div>
+  <div class="chatinput">
+    <input id="chatInput" placeholder="Apna sawal likho..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">Send</button>
+  </div>
+</div>
 
 
 <div class="modal" id="paymentModal">
@@ -278,6 +303,47 @@ function closePayment(){
 }
 
 document.getElementById('date').min=new Date().toISOString().split('T')[0];
+
+let chatHistory=[];
+function toggleChat(){
+  const box=document.getElementById('chatBox');
+  box.classList.toggle('open');
+  if(box.classList.contains('open')&&!document.getElementById('chatMsgs').children.length){
+    addMsg('bot','Namaste! 🙏 Main Ashirwad Transport Agency ka AI assistant hoon. Booking, fare, vehicle, route ya kisi bhi sawaal ke liye poochhiye!');
+  }
+  document.getElementById('chatInput').focus();
+}
+function addMsg(role,text){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  addMsg('user',text);
+  chatHistory.push({role:'user',text});
+  const t=addMsg('bot','...');
+  t.classList.add('typing');
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:chatHistory.slice(0,-1)})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'AI error');
+    chatHistory.push({role:'model',text:d.reply});
+    t.textContent=d.reply;
+    t.classList.remove('typing');
+  }catch(e){
+    t.textContent='Mujhe abhi reply nahi de paya. Thodi der baad try karo.';
+    t.classList.remove('typing');
+  }
+}
+
 </script>
 </body>
 </html>

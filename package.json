@@ -8,6 +8,7 @@
     "dev": "node server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "express": "^4.19.2",
     "mongoose": "^8.5.1",
     "razorpay": "^2.9.8"
