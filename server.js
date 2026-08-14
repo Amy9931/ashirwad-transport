@@ -1,10 +1,20 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'bookings.json');
+
+let rzp = null;
+if (process.env.RZP_KEY_ID && process.env.RZP_KEY_SECRET) {
+  rzp = new Razorpay({
+    key_id: process.env.RZP_KEY_ID,
+    key_secret: process.env.RZP_KEY_SECRET
+  });
+}
 
 let Booking;
 try {
@@ -26,6 +36,7 @@ try {
       drop: String,
       email: String,
       amount: Number,
+      paymentId: String,
       date: String,
       status: String
     });
@@ -72,9 +83,43 @@ app.get('/api/seats/:vehicle', async (req, res) => {
   }
 });
 
+// Razorpay order create karne ke liye API
+app.post('/api/create-order', async (req, res) => {
+  const { amount } = req.body;
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
+  if (!process.env.RZP_KEY_ID || !process.env.RZP_KEY_SECRET) {
+    return res.status(500).json({ error: 'Razorpay keys configured nahi hain' });
+  }
+  try {
+    const options = {
+      amount: amount * 100,
+      currency: 'INR',
+      receipt: 'AT' + Date.now().toString().slice(-8)
+    };
+    const order = await rzp.orders.create(options);
+    res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
+  } catch (err) {
+    res.status(500).json({ error: 'Razorpay order create failed: ' + err.message });
+  }
+});
+
+// Razorpay payment verify karne ke liye API
+app.post('/api/verify-payment', (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  const text = razorpay_order_id + '|' + razorpay_payment_id;
+  const expected = crypto.createHmac('sha256', process.env.RZP_KEY_SECRET).update(text).digest('hex');
+  if (expected === razorpay_signature) {
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: 'Invalid payment signature' });
+  }
+});
+
 // Booking save karne ke liye API
 app.post('/api/bookings', async (req, res) => {
-  const { vehicle, seat, name, phone, pickup, drop, email, amount, bookingId } = req.body;
+  const { vehicle, seat, name, phone, pickup, drop, email, amount, bookingId, paymentId } = req.body;
   if (!vehicle || !seat || !name || !phone || !pickup || !drop) {
     return res.status(400).json({ error: 'Required fields missing' });
   }
@@ -92,6 +137,7 @@ app.post('/api/bookings', async (req, res) => {
       drop,
       email: email || '',
       amount: amount || 0,
+      paymentId: paymentId || '',
       date: new Date().toLocaleString('en-IN'),
       status: 'confirmed'
     };

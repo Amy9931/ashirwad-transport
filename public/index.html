@@ -142,15 +142,12 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
     <div style="font-size:42px">💳</div>
     <h2 style="margin:8px 0">Complete Your Payment</h2>
     <p style="margin:0;color:#667085">Booking amount</p>
-    <div class="paymentamount">₹270</div>
-    <img id="paymentQR" class="qrpay" alt="Scan to pay ₹270">
-    <p><b>UPI ID: 589005@ybl</b></p><div style="margin:12px 0;padding:12px;border-radius:10px;background:#ecfdf3;border:1px solid #abefc6;font-weight:800">💰 Payment Option: ₹270</div>
-    <a id="upiPayButton" class="btn gold" style="display:block;width:100%;margin-top:10px" href="#">
-      📲 Pay ₹270 with UPI App
-    </a>
-    <p class="paynote">On supported phones, this opens your installed UPI app. Otherwise, scan the QR code above.</p>
-    <p class="paynote">Scan the QR code with any UPI app and pay exactly ₹270.</p>
-    <button class="btn" style="width:100%;margin-top:10px" onclick="confirmPaid()">✅ I Have Paid — Confirm Booking</button>
+    <div class="paymentamount" id="payAmount">₹0</div>
+    <div style="margin:16px 0;padding:14px;border-radius:10px;background:#ecfdf3;border:1px solid #abefc6">
+      <div style="font-weight:800;margin-bottom:4px">💰 Secure Payment via Razorpay</div>
+      <p class="paynote" style="margin:0">UPI, Cards, NetBanking, Wallets — saare options se pay kar sakte ho.</p>
+    </div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="startRazorpay()">🔒 Pay Now</button>
     <button class="btn dark" style="width:100%;margin-top:10px" onclick="closePayment()">Cancel</button>
     <div class="confirm" id="paymentConfirm"></div>
   </div>
@@ -175,6 +172,8 @@ footer{background:#050f20;color:#b7c0d0;padding:22px 5%;display:flex;justify-con
  </div>
 </div>
 
+<script id="rzp-key" data-key="rzp_test_TPZqfkxszYKq3n"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 let currentVehicle='', seatsCount=0, selectedSeat=null, baseFare=0;
 function searchTrip(){
@@ -217,32 +216,64 @@ function confirmBooking(){
   currentBookingId='AT'+Date.now().toString().slice(-8);
   const amount=baseFare;
   pendingBooking={vehicle:currentVehicle,seat:selectedSeat,name,phone,pickup,drop,email:document.getElementById('email').value.trim(),amount,bookingId:currentBookingId};
-  const qrData='upi://pay?pa=589005@ybl&pn=Ashirwad%20Transport%20Agency&am='+amount+'&cu=INR';
-  document.getElementById('paymentQR').src='https://api.qrserver.com/v1/create-qr-code/?size=230x230&data='+encodeURIComponent(qrData);
-  document.getElementById('upiPayButton').href=qrData;
-  document.querySelector('.paymentamount').textContent='₹'+amount;
-  document.querySelector('#paymentModal .confirm').innerHTML='';
-
+  document.getElementById('payAmount').textContent='₹'+amount;
   document.getElementById('paymentConfirm').classList.remove('show');
   document.getElementById('modal').classList.remove('open');
   document.getElementById('paymentModal').classList.add('open');
 }
 
-async function confirmPaid(){
+async function startRazorpay(){
   if(!pendingBooking) return;
   const btn=document.querySelector('#paymentModal .btn');
-  btn.disabled=true;btn.textContent='Saving...';
+  btn.disabled=true;btn.textContent='Loading payment...';
+  try{
+    const r=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:pendingBooking.amount})});
+    const d=await r.json();
+    if(!r.ok){alert('Error: '+(d.error||'Order create failed'));btn.disabled=false;btn.textContent='🔒 Pay Now';return}
+    openRazorpay(d.orderId);
+  }catch(e){
+    alert('Payment start nahi ho paya. Dobara try karo.');
+    btn.disabled=false;btn.textContent='🔒 Pay Now';
+  }
+}
+
+function openRazorpay(orderId){
+  const amount=pendingBooking.amount;
+  const options={
+    key: window.RZP_KEY_ID || document.getElementById('rzp-key').dataset.key,
+    amount: amount*100,
+    currency: 'INR',
+    name: 'Ashirwad Transport Agency',
+    description: pendingBooking.vehicle+' · Seat '+pendingBooking.seat,
+    order_id: orderId,
+    prefill:{name:pendingBooking.name,contact:pendingBooking.phone,email:pendingBooking.email||''},
+    handler: async function(response){
+      const v=await fetch('/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:response.razorpay_order_id,razorpay_payment_id:response.razorpay_payment_id,razorpay_signature:response.razorpay_signature})});
+      const vd=await v.json();
+      if(!vd.success){alert('Payment verification failed');return}
+      pendingBooking.paymentId=response.razorpay_payment_id;
+      await saveBooking();
+    },
+    modal:{ondismiss:function(){const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';}}
+  };
+  if(typeof Razorpay==='undefined'){alert('Razorpay checkout load nahi hua. Internet check karo.');const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';return}
+  const rzp1=new Razorpay(options);
+  rzp1.on('payment.failed',function(resp){alert('Payment failed: '+(resp.error&&resp.error.description||'Try again'));const b=document.querySelector('#paymentModal .btn');b.disabled=false;b.textContent='🔒 Pay Now';});
+  rzp1.open();
+}
+
+async function saveBooking(){
+  const btn=document.querySelector('#paymentModal .btn');
   try{
     const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pendingBooking)});
     const d=await r.json();
-    if(!r.ok){alert('Error: '+(d.error||'Booking failed'));btn.disabled=false;btn.textContent='✅ I Have Paid — Confirm Booking';return}
-    document.getElementById('paymentConfirm').innerHTML='Booking Confirmed! Booking ID: <b>'+d.id+'</b> · Seat <b>'+d.seat+'</b> · '+d.vehicle;
+    if(!r.ok){alert('Error: '+(d.error||'Booking failed'));btn.disabled=false;btn.textContent='🔒 Pay Now';return}
+    document.getElementById('paymentConfirm').innerHTML='Payment Successful! 🎉 Booking Confirmed!<br>Booking ID: <b>'+d.id+'</b> · Seat <b>'+d.seat+'</b> · '+d.vehicle;
     document.getElementById('paymentConfirm').classList.add('show');
-    document.getElementById('upiPayButton').style.display='none';
-    document.querySelector('#paymentModal .confirm').innerHTML='';
+    document.querySelector('#paymentModal .btn').style.display='none';
   }catch(e){
-    alert('Server se connect nahi ho paya. Ensure backend chalu hai (node server.js).');
-    btn.disabled=false;btn.textContent='✅ I Have Paid — Confirm Booking';
+    alert('Payment ho gaya, lekin booking save nahi hui. Support se contact karo.');
+    btn.disabled=false;btn.textContent='🔒 Pay Now';
   }
 }
 
